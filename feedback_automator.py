@@ -3,7 +3,6 @@ import getpass
 import random
 from typing import Set, Tuple
 
-from numpy import character
 
 BASE_10_SET: Set[str] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}
 BASE_16_SET: Set[str] = set.union(BASE_10_SET, {'a', 'b', 'c', 'd', 'e', 'f'})
@@ -114,7 +113,3 @@ if __name__ == "__main__":
             break
         else:
             print(' ' * (len(guess_prompt) + len(guess) + 1) + feedback)
-
-        
-
-
