@@ -9,7 +9,7 @@ BASE_16_SET: Set[str] = set.union(BASE_10_SET, {'a', 'b', 'c', 'd', 'e', 'f'})
 
 
 # Returns `(secret_code, base)`.
-def get_secret_code() -> Tuple[str, int]:
+def get_secret_code_and_base() -> Tuple[str, int]:
 
     # Get the base.
     base: int = int(input('Which base? (10 or 16): '))
@@ -19,7 +19,7 @@ def get_secret_code() -> Tuple[str, int]:
     secret_code:str = getpass.getpass('Enter the secret code, or type `r` or `random` if you want a random secret code: ')
     # Handle random secret code.
     if(secret_code == 'r' or secret_code == 'random'):
-        return (get_random_secret_code(base), base)
+        return (create_random_secret_code(base), base)
     
     # Check if the given code conforms the given base.
     if(base == 10):
@@ -37,7 +37,7 @@ def get_secret_code() -> Tuple[str, int]:
 
 
 # Returns a secret code in the given base.
-def get_random_secret_code(base: int) -> str:
+def create_random_secret_code(base: int) -> str:
     nb_digits: int = int(input('How many digits do you want? (3-5 recommended): '))
     secret_code: str = ''
     available_char_set:Set[str]
@@ -58,7 +58,7 @@ def get_random_secret_code(base: int) -> str:
 
 
 # Gives feedback of the from '+1 -2' on a given guess.
-def feedback_on_guess(guess: str) -> str:
+def feedback_on_guess(guess: str, secret_code: str) -> str:
     nb_correct_placed: int = 0
     nb_wrong_placed: int = 0
     
@@ -78,8 +78,33 @@ def string_contains_repeating_element(string:str) -> bool:
     return any(string.count(elm) > 1 for elm in string)
 
 
+def all_characters_valid(string: str, base: int) -> bool:
+    base_set = BASE_10_SET if base == 10 else BASE_16_SET
+    return all(c in base_set for c in string)
+
+
+def input_valid(guess: str, secret_code: str, base: int) -> bool:
+    '''Check if the guess is conform the rules.'''
+    if(len(guess) != len(secret_code)):
+        print('Your guess should match the length of the secret code, which is ', len(secret_code))
+        return False
+    if(string_contains_repeating_element(guess)):
+        print('Your guess may not contain repeating characters!')
+        return False
+    if(not all_characters_valid(guess, base)):
+        print(f'Your guess must contain characters from base {base}')
+        return False
+    
+    return True
+
+
+def guess_correct(guess: str, secret_code: str) -> bool:
+    feedback: str = feedback_on_guess(guess, secret_code)
+    return ('+' + str(len(secret_code))) in feedback
+    
+    
 if __name__ == "__main__":
-    result: tuple = get_secret_code()
+    result: Tuple[str, int] = get_secret_code_and_base()
     secret_code: str = result[0]
     base: int = result[1]
 
@@ -95,21 +120,17 @@ if __name__ == "__main__":
         # Check if player gave up.
         if(guess == 'quit'):
             continue
-        
-        # Check if the guess is conform the rules.
-        if(len(guess) != len(secret_code)):
-            print('Your guess should match the length of the secret code, which is ', len(secret_code))
-            continue
-        if(string_contains_repeating_element(guess)):
-            print('Your guess may not contain repeating characters!')
-            continue
 
+        # Check input validity.
+        if not input_valid(guess, secret_code, base):
+            continue
+        
         nb_tries += 1        
-        feedback = feedback_on_guess(guess)
         # Check if player won. Else give feedback.
-        if(feedback.count('+' + str(len(secret_code)))):
-            print('Congrats!! You guessed correctly!')
+        if(guess_correct(guess, secret_code)):
+            print('\nCongrats!! You guessed correctly!')
             print('Number of tries: ' + str(nb_tries))
             break
         else:
-            print(' ' * (len(guess_prompt) + len(guess) + 1) + feedback)
+            indentation: str = ' ' * (len(guess_prompt) + len(guess) + 1)
+            print(indentation + feedback)
